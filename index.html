@@ -3,105 +3,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Provas Automática</title>
+    <title>GOSTOSAS CONCURSADAS</title>
+    <!-- Tailwind CSS v4 -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans">
-    <div class="max-w-4xl mx-auto p-6">
-        <header class="mb-8 text-center">
-            <h1 id="titulo" class="text-3xl font-bold text-indigo-600">Carregando Concurso...</h1>
-            <p class="text-slate-500 mt-1">Questões separadas e corrigidas automaticamente a partir dos seus PDFs.</p>
-        </header>
+    <!-- Fonte Google: Poppins / Verdana Fallback -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: Verdana, 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f3e8ff 0%, #fae8ff 50%, #f5d0fe 100%);
+            min-height: 100vh;
+        }
 
-        <main id="app" class="space-y-10">
-            <!-- Injetado dinamicamente via JS -->
+        /* Efeito de brilho estético que segue o mouse */
+        #mouse-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 500px;
+            height: 500px;
+            margin-left: -250px;
+            margin-top: -250px;
+            background: radial-gradient(circle, rgba(216, 180, 254, 0.45) 0%, rgba(192, 132, 252, 0.2) 40%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            transition: transform 0.15s ease-out;
+            will-change: transform;
+            mix-blend-mode: color-burn;
+        }
+
+        /* Estilização da barra de rolagem estética */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(243, 232, 255, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d8b4fe;
+            border-radius: 20px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c084fc;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(233, 213, 255, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(168, 85, 247, 0.08), 0 8px 10px -6px rgba(168, 85, 247, 0.04);
+        }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(233, 213, 255, 0.9);
+            box-shadow: 0 4px 20px rgba(192, 132, 252, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-purple-50 text-purple-950 font-sans min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Elemento do brilho interativo -->
+    <div id="mouse-glow"></div>
+
+    <!-- Header / Cabeçalho -->
+    <header class="glass-header sticky top-0 z-30 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap gap-4 justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-fuchsia-400 flex items-center justify-center text-white shadow-md shadow-purple-200 text-lg">
+                    ✨
+                </div>
+                <div>
+                    <h1 id="titulo-concurso" class="text-xl font-bold bg-gradient-to-r from-purple-700 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent tracking-tight">
+                        Simulado Geral - Consuplan
+                    </h1>
+                    <p class="text-xs font-medium text-purple-400">Questões de concursos anteriores Consuplan</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <select id="filtro-prova" class="text-sm border border-purple-200 rounded-xl px-3 py-2 bg-purple-50/50 text-purple-800 font-medium max-w-xs focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all cursor-pointer shadow-xs"></select>
+                <div id="contador-respondidas" class="bg-gradient-to-r from-purple-100 to-fuchsia-100 text-purple-800 px-4 py-2 rounded-xl text-sm font-semibold border border-purple-200/80 shadow-xs flex items-center gap-1.5">
+                    <span>🌸</span> Respondidas: 0 / 0
+                </div>
+                <button id="btn-reiniciar" class="text-xs font-semibold text-purple-400 hover:text-purple-700 hover:bg-purple-100/60 px-3 py-2 rounded-xl transition-all cursor-pointer border border-transparent hover:border-purple-200">
+                    Reiniciar ↺
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 py-8 flex-1 flex gap-8 z-10">
+        <!-- Sidebar de Navegação -->
+        <aside class="w-80 glass-card rounded-2xl p-5 h-[calc(100vh-130px)] sticky top-24 overflow-y-auto hidden md:block transition-all">
+            <div class="flex items-center justify-between mb-4 pb-2 border-b border-purple-100">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-purple-400">Navegação por Tópicos</h2>
+                <span class="text-xs">📚</span>
+            </div>
+            <nav id="lista-materias" class="space-y-1.5"></nav>
+        </aside>
+
+        <!-- Área Central de Questões -->
+        <main class="flex-1 max-w-4xl mx-auto w-full">
+            <div class="mb-6 flex justify-between items-center glass-card p-5 rounded-2xl transition-all">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-fuchsia-400 animate-pulse"></span>
+                    <h2 id="nome-materia-ativa" class="text-lg font-bold text-purple-900 uppercase tracking-wide">
+                        Carregando...
+                    </h2>
+                </div>
+                <span id="total-questoes-materia" class="text-xs bg-gradient-to-r from-purple-100 to-fuchsia-100 text-purple-700 px-3.5 py-1.5 rounded-full font-semibold border border-purple-200 shadow-2xs">
+                    0 questões
+                </span>
+            </div>
+
+            <div id="container-questoes" class="space-y-6"></div>
         </main>
     </div>
 
+    <!-- Script para o brilho interativo no mouse -->
     <script>
-        async function iniciar() {
-            const res = await fetch('questoes.json');
-            const dados = await res.json();
-            
-            document.getElementById('titulo').innerText = dados.concurso;
-            
-            // Agrupa as questões por matéria de forma totalmente automática
-            const agrupadoPorMateria = {};
-            dados.questoes.forEach(q => {
-                if (!agrupadoPorMateria[q.materia]) {
-                    agrupadoPorMateria[q.materia] = [];
-                }
-                agrupadoPorMateria[q.materia].push(q);
-            });
+        const glow = document.getElementById('mouse-glow');
+        window.addEventListener('mousemove', (e) => {
+            glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+        });
+    </script>
+</body>
+</html>
 
-            const app = document.getElementById('app');
-            app.innerHTML = '';
+    <script>
+        let questoes = [];
+        let provas = [];
+        let materiaAtiva = null;
+        let provaAtiva = '';          // '' = todas
+        let respostasUsuario = {};    // uid -> letra escolhida
+        const CHAVE_SALVA = 'simulado-respostas-v2';
 
-            // Renderiza na tela separado por blocos de matérias
-            for (const [materia, questoes] of Object.entries(agrupadoPorMateria)) {
+        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        function salvar() { try { localStorage.setItem(CHAVE_SALVA, JSON.stringify(respostasUsuario)); } catch (e) {} }
+        function restaurar() { try { respostasUsuario = JSON.parse(localStorage.getItem(CHAVE_SALVA) || '{}'); } catch (e) { respostasUsuario = {}; } }
+
+        const visiveis = () => questoes.filter(q => !provaAtiva || q.prova === provaAtiva);
+
+        async function carregarQuestoes() {
+            try {
+                const response = await fetch('questoes.json');
+                if (!response.ok) throw new Error('Erro ao carregar o arquivo questoes.json');
+                const data = await response.json();
+
+                document.getElementById('titulo-concurso').innerText = data.concurso || 'Simulado de Provas';
+                questoes = data.questoes || [];
+                provas = data.provas || [];
+                restaurar();
+
+                const sel = document.getElementById('filtro-prova');
+                sel.innerHTML = '<option value="">Todas as provas</option>' + provas.map(p =>
+                    `<option value="${esc(p.rotulo)}">${esc(p.rotulo)}${p.cargo ? ' — ' + esc(p.cargo.slice(0, 40)) : ''}</option>`).join('');
+                sel.onchange = () => { provaAtiva = sel.value; materiaAtiva = null; renderizar(); };
+                document.getElementById('btn-reiniciar').onclick = () => {
+                    if (confirm('Apagar todas as respostas marcadas?')) { respostasUsuario = {}; salvar(); renderizar(); }
+                };
+                renderizar();
+            } catch (error) {
+                console.error(error);
+                document.getElementById('container-questoes').innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl">
+                        <p class="font-bold">Erro ao carregar as questões!</p>
+                        <p class="text-sm">Execute o script Python para gerar o <strong>questoes.json</strong> na mesma pasta e abra esta página por um servidor local (Live Server).</p>
+                    </div>`;
+            }
+        }
+
+        function renderizar() {
+            const lista = visiveis();
+            if (!materiaAtiva || !lista.some(q => q.materia === materiaAtiva)) materiaAtiva = lista.length ? lista[0].materia : null;
+            renderizarSidebar();
+            renderizarQuestoes();
+            atualizarContador();
+        }
+
+        function renderizarSidebar() {
+            const el = document.getElementById('lista-materias');
+            el.innerHTML = '';
+            const mapa = {};
+            visiveis().forEach(q => { mapa[q.materia] = (mapa[q.materia] || 0) + 1; });
+            for (const [materia, count] of Object.entries(mapa)) {
+                const ativo = materia === materiaAtiva;
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition flex justify-between items-center ${ativo ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'}`;
+                btn.innerHTML = `<span class="truncate pr-2" title="${esc(materia)}">${esc(materia)}</span>
+                                 <span class="text-xs px-2 py-0.5 rounded-full ${ativo ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-500'}">${count}</span>`;
+                btn.onclick = () => { materiaAtiva = materia; renderizarSidebar(); renderizarQuestoes(); };
+                el.appendChild(btn);
+            }
+        }
+
+        function classesAlternativa(q, letra) {
+            const salva = respostasUsuario[q.uid];
+            if (!salva) return 'border-gray-200 hover:bg-gray-50 text-gray-700';
+            if (letra === q.resposta_correta) return 'bg-green-50 border-green-500 text-green-900 font-medium';
+            if (letra === salva) return 'bg-red-50 border-red-500 text-red-900';
+            return 'border-gray-200 text-gray-500 opacity-60';
+        }
+
+        function renderizarQuestoes() {
+            const container = document.getElementById('container-questoes');
+            container.innerHTML = '';
+            const filtradas = visiveis().filter(q => q.materia === materiaAtiva);
+            document.getElementById('nome-materia-ativa').innerText = materiaAtiva || '';
+            document.getElementById('total-questoes-materia').innerText = `${filtradas.length} questões`;
+
+            if (!filtradas.length) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhuma questão encontrada.</p>';
+                return;
+            }
+
+            filtradas.forEach(q => {
+                const card = document.createElement('div');
+                card.className = 'bg-white border border-gray-200 rounded-xl p-6 shadow-xs';
+                const anulada = q.resposta_correta === 'ANULADA';
+                const semGab = !q.resposta_correta;
+
                 let html = `
-                    <section class="bg-white shadow-sm border border-slate-200 rounded-xl p-6">
-                        <h2 class="text-xl font-bold text-slate-700 border-b pb-3 mb-6 flex justify-between items-center">
-                            <span>${materia}</span>
-                            <span class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-semibold">${questoes.length} questões</span>
-                        </h2>
-                        <div class="space-y-8">
-                `;
-
-                questoes.forEach((q, idx) => {
-                    html += `
-                        <div class="pb-6 border-b border-slate-100 last:border-0 last:pb-0" id="q-${q.id}">
-                            <p class="font-medium text-slate-900 mb-3">Questão ${q.id}: ${q.enunciado}</p>
-                            <div class="space-y-2">
-                    `;
-
-                    q.alternativas.forEach(alt => {
-                        const letra = alt.charAt(0);
-                        html += `
-                            <button onclick="verificar(this, '${letra}', '${q.resposta_correta}', ${q.id})"
-                                class="w-full text-left px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all text-sm">
-                                ${alt}
-                            </button>
-                        `;
-                    });
-
-                    html += `
-                            </div>
-                            <div class="feedback mt-3 text-sm font-semibold hidden"></div>
-                        </div>
-                    `;
-                });
-
-                html += `</div></section>`;
-                app.innerHTML += html;
-            }
-        }
-
-        function verificar(botao, escolhida, correta, id) {
-            const container = document.getElementById(`q-${id}`);
-            const botoes = container.querySelectorAll('button');
-            const feedback = container.querySelector('.feedback');
-
-            botoes.forEach(b => {
-                b.disabled = true;
-                b.classList.remove('hover:bg-indigo-50', 'hover:border-indigo-300');
-                if (b.textContent.charAt(0) === correta) {
-                    b.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Questão ${esc(q.numero)}</span>
+                        <span class="text-xs text-gray-400 font-medium">${esc(q.prova || 'Simulado')}</span>
+                    </div>`;
+                if (q.apoio) {
+                    html += `<details class="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-600" open>
+                                <summary class="cursor-pointer text-xs font-semibold text-gray-500 uppercase">Texto de apoio</summary>
+                                <p class="mt-2 leading-relaxed whitespace-pre-line">${esc(q.apoio)}</p></details>`;
                 }
+                html += `<p class="text-gray-900 font-medium mb-5 leading-relaxed whitespace-pre-line">${esc(q.enunciado)}</p>
+                         <div class="space-y-3">`;
+                (q.alternativas || []).forEach(alt => {
+                    html += `<div data-uid="${esc(q.uid)}" data-letra="${esc(alt.letra)}"
+                                  class="alt border rounded-lg p-3.5 text-sm cursor-pointer transition flex items-start gap-3 ${classesAlternativa(q, alt.letra)}">
+                                <span class="font-bold">${esc(alt.letra)})</span>
+                                <span class="flex-1 whitespace-pre-line">${esc(alt.texto)}</span>
+                             </div>`;
+                });
+                html += '</div>';
+                if (!(q.alternativas || []).length) html += '<p class="text-xs text-amber-600">Não consegui separar as alternativas desta questão.</p>';
+                if (anulada) html += '<p class="mt-3 text-xs font-semibold text-amber-600">Questão anulada pela banca.</p>';
+                if (semGab) html += '<p class="mt-3 text-xs text-amber-600">Gabarito não encontrado para esta questão.</p>';
+                card.innerHTML = html;
+                container.appendChild(card);
             });
 
-            if (escolhida !== correta) {
-                botao.classList.add('bg-rose-100', 'border-rose-500', 'text-rose-900');
-                feedback.textContent = `Incorreto! A alternativa correta é (${correta}).`;
-                feedback.className = 'feedback mt-3 text-sm font-semibold text-rose-600';
-            } else {
-                feedback.textContent = 'Parabéns, resposta correta!';
-                feedback.className = 'feedback mt-3 text-sm font-semibold text-emerald-600';
-            }
-            feedback.classList.remove('hidden');
+            container.querySelectorAll('.alt').forEach(el => {
+                el.onclick = () => avaliarResposta(el.dataset.uid, el.dataset.letra);
+            });
         }
 
-        iniciar();
+        function avaliarResposta(uid, letra) {
+            const q = questoes.find(x => x.uid === uid);
+            if (!q || respostasUsuario[uid]) return;
+            respostasUsuario[uid] = letra;
+            salvar();
+            document.querySelectorAll('.alt').forEach(el => {
+                if (el.dataset.uid !== uid) return;
+                el.className = `alt border rounded-lg p-3.5 text-sm cursor-pointer transition flex items-start gap-3 ${classesAlternativa(q, el.dataset.letra)}`;
+            });
+            atualizarContador();
+        }
+
+        function atualizarContador() {
+            const lista = visiveis();
+            const resp = lista.filter(q => respostasUsuario[q.uid]);
+            const acertos = resp.filter(q => respostasUsuario[q.uid] === q.resposta_correta).length;
+            document.getElementById('contador-respondidas').innerText =
+                `Respondidas: ${resp.length} / ${lista.length}` + (resp.length ? ` · Acertos: ${acertos}` : '');
+        }
+
+        window.onload = carregarQuestoes;
     </script>
 </body>
 </html>
